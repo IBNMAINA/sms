@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= page.replace(/_/g, ' ').toUpperCase() %> | SMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --sidebar-bg: #1B1C31;
+      --sidebar-hover: #2B2DFB;
+      --bg-color: #F4F7FE;
+      --text-main: #2B3674;
+      --text-muted: #A3AED0;
+      --card-radius: 20px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-main); }
+    /* Sidebar */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 280px; background: var(--sidebar-bg);
+      padding: 24px 18px; overflow-y: auto; z-index: 1000;
+      display: flex; flex-direction: column;
+    }
+    .brand-box { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding: 0 8px; }
+    .brand-logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, #FF9C00, #FFC048);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 1.2rem;
+    }
+    .brand-text { color: #fff; font-weight: 700; line-height: 1.1; }
+    .brand-text small { color: var(--text-muted); font-weight: 400; font-size: 0.7rem; }
+    .nav-header {
+      color: var(--text-muted); font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      margin: 18px 8px 8px 8px;
+    }
+    .side-link {
+      display: flex; align-items: center; gap: 12px;
+      color: #cbd0e6; text-decoration: none;
+      padding: 11px 14px; border-radius: 12px;
+      font-size: 0.88rem; margin-bottom: 4px; transition: all 0.2s;
+    }
+    .side-link i { width: 18px; text-align: center; }
+    .side-link:hover { background: rgba(43, 45, 251, 0.25); color: #fff; }
+    .side-link.active { background: var(--sidebar-hover); color: #fff; }
+    .side-link.logout { color: #FF4C61; }
+    .trophy-card {
+      background: linear-gradient(135deg, #2B2DFB, #6366F1);
+      border-radius: 16px; padding: 18px; text-align: center;
+      color: #fff; margin-top: auto;
+    }
+    /* Main */
+    .main-content { margin-left: 280px; padding: 24px 32px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .page-title { font-weight: 700; font-size: 1.4rem; text-transform: capitalize; }
+    .welcome-text { color: var(--text-muted); font-size: 0.85rem; }
+    .search-box { background: #fff; border-radius: 30px; padding: 8px 18px; display: flex; align-items: center; gap: 8px; }
+    .search-box input { border: none; outline: none; background: transparent; font-size: 0.85rem; }
+    .icon-btn {
+      background: #fff; border: none; width: 42px; height: 42px;
+      border-radius: 50%; color: var(--text-muted); position: relative;
+    }
+    .icon-btn .badge-dot {
+      position: absolute; top: -2px; right: -2px;
+      background: #FF4C61; color: #fff; font-size: 0.6rem;
+      border-radius: 50%; padding: 3px 6px;
+    }
+    .profile-btn {
+      background: #fff; border: none; border-radius: 30px;
+      padding: 6px 16px 6px 6px; display: flex; align-items: center; gap: 10px;
+    }
+    .profile-btn img { width: 34px; height: 34px; border-radius: 50%; }
+    /* Cards */
+    .card { border: none; border-radius: var(--card-radius); box-shadow: 0 5px 20px rgba(43, 54, 116, 0.05); }
+    .metric-card { border-radius: var(--card-radius); padding: 22px; color: #fff; }
+    .bg-purple { background: #6366F1; } .bg-green { background: #00B87C; }
+    .bg-orange { background: #FF9C00; } .bg-blue { background: #0075FF; }
+    .bg-pink { background: #FF4C61; }
+    .metric-icon {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; margin-bottom: 12px;
+    }
+    .metric-card h3 { font-weight: 700; margin: 0; }
+    .metric-card small { opacity: 0.85; }
+    .table th { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; border: none; }
+    .table td { vertical-align: middle; font-size: 0.88rem; color: var(--text-main); }
+    .btn { border-radius: 12px; }
+    .form-control, .form-select { background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0; font-size: 0.88rem; }
+    .form-control:focus, .form-select:focus { border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+    .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .pill-green { background: #E6FAF3; color: #00B87C; }
+    .pill-red { background: #FFECEE; color: #FF4C61; }
+    .pill-yellow { background: #FFF6E5; color: #FF9C00; }
+    .result-card { border-top: 5px solid #6366F1; }
+  </style>
+</head>
+<body>
+
+<!-- ======================= SIDEBAR ======================= -->
+<div class="sidebar">
+  <div class="brand-box">
+    <div class="brand-logo">S</div>
+    <div class="brand-text">SMS<br><small>Management System</small></div>
+  </div>
+
+  <a href="/app?page=dashboard" class="side-link <%= page === 'dashboard' ? 'active' : '' %>">
+    <i class="fa-solid fa-house"></i> Dashboard
+  </a>
+
+  <% if (user.role === 'admin') { %>
+    <div class="nav-header">Academic</div>
+    <a href="/app?page=courses" class="side-link <%= page === 'courses' ? 'active' : '' %>"><i class="fa-solid fa-book"></i> Courses</a>
+    <a href="/app?page=subjects" class="side-link <%= page === 'subjects' ? 'active' : '' %>"><i class="fa-solid fa-layer-group"></i> Subjects</a>
+    <div class="nav-header">Users</div>
+    <a href="/app?page=manage_staff" class="side-link <%= page === 'manage_staff' ? 'active' : '' %>"><i class="fa-solid fa-user-tie"></i> Manage Staff</a>
+    <a href="/app?page=manage_students" class="side-link <%= page === 'manage_students' ? 'active' : '' %>"><i class="fa-solid fa-user-graduate"></i> Manage Students</a>
+    <div class="nav-header">Requests</div>
+    <a href="/app?page=notifications" class="side-link <%= page === 'notifications' ? 'active' : '' %>"><i class="fa-solid fa-envelope-open-text"></i> Leave Requests</a>
+    <a href="/app?page=notify" class="side-link <%= page === 'notify' ? 'active' : '' %>"><i class="fa-solid fa-bullhorn"></i> Send Notice</a>
+  <% } else if (user.role === 'staff') { %>
+    <div class="nav-header">Academic</div>
+    <a href="/app?page=take_attendance" class="side-link <%= (page === 'take_attendance' || page === 'manage_attendance') ? 'active' : '' %>"><i class="fa-solid fa-clipboard-user"></i> Take Attendance</a>
+    <a href="/app?page=view_attendance" class="side-link <%= page === 'view_attendance' ? 'active' : '' %>"><i class="fa-solid fa-list-check"></i> View Attendance</a>
+    <a href="/app?page=manage_exams" class="side-link <%= page === 'manage_exams' ? 'active' : '' %>"><i class="fa-solid fa-file-pen"></i> Manage Exams</a>
+    <div class="nav-header">Requests</div>
+    <a href="/app?page=apply_leave" class="side-link <%= page === 'apply_leave' ? 'active' : '' %>"><i class="fa-solid fa-calendar-minus"></i> Apply Leave</a>
+    <a href="/app?page=staff_notifs" class="side-link <%= page === 'staff_notifs' ? 'active' : '' %>"><i class="fa-solid fa-bell"></i> Notices</a>
+  <% } else { %>
+    <div class="nav-header">Academic</div>
+    <a href="/app?page=my_attendance" class="side-link <%= page === 'my_attendance' ? 'active' : '' %>"><i class="fa-solid fa-calendar-check"></i> My Attendance</a>
+    <a href="/app?page=exam_results" class="side-link <%= page === 'exam_results' ? 'active' : '' %>"><i class="fa-solid fa-award"></i> Exam Results</a>
+    <div class="nav-header">Requests</div>
+    <a href="/app?page=apply_leave" class="side-link <%= page === 'apply_leave' ? 'active' : '' %>"><i class="fa-solid fa-calendar-minus"></i> Apply Leave</a>
+    <a href="/app?page=student_notifs" class="side-link <%= page === 'student_notifs' ? 'active' : '' %>"><i class="fa-solid fa-bell"></i> Notices</a>
+    <div class="nav-header">Others</div>
+    <a href="/app?page=feedback" class="side-link <%= page === 'feedback' ? 'active' : '' %>"><i class="fa-solid fa-comment-dots"></i> Feedback</a>
+  <% } %>
+
+  <div class="trophy-card mt-4">
+    <i class="fa-solid fa-trophy fa-2x mb-2"></i>
+    <div style="font-weight:600; font-size:0.9rem;">Keep it up!</div>
+    <small style="opacity:0.8; font-size:0.75rem;">You're doing great this term.</small>
+  </div>
+
+  <a href="/logout" class="side-link logout mt-3"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<!-- ======================= MAIN ======================= -->
+<div class="main-content">
+
+  <!-- Top navbar -->
+  <div class="topbar">
+    <div>
+      <div class="page-title"><%= page.replace(/_/g, ' ') %></div>
+      <div class="welcome-text">Welcome back, <%= user.full_name %>!</div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="search-box"><i class="fa-solid fa-magnifying-glass text-muted"></i><input type="text" placeholder="Search..."></div>
+      <button class="icon-btn"><i class="fa-regular fa-calendar"></i></button>
+      <button class="icon-btn"><i class="fa-regular fa-bell"></i><span class="badge-dot">3</span></button>
+      <button class="profile-btn">
+        <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(user.full_name) %>&background=6366F1&color=fff" alt="avatar">
+        <span class="text-start" style="line-height:1.1;">
+          <span style="font-weight:600; font-size:0.85rem;"><%= user.full_name %></span><br>
+          <small class="text-muted text-capitalize"><%= user.role %></small>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Success alert -->
+  <% if (typeof success_msg !== 'undefined' && success_msg) { %>
+    <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
+      <i class="fa-solid fa-circle-check me-2"></i><%= success_msg %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } %>
+
+  <!-- ================= PAGE CONTENT ================= -->
+
+  <% if (page === 'dashboard') { %>
+    <div class="row g-3 mb-4">
+      <div class="col"><div class="metric-card bg-purple"><div class="metric-icon"><i class="fa-solid fa-book"></i></div><h3><%= typeof total_courses !== 'undefined' ? total_courses : 12 %></h3><small>Total Courses</small></div></div>
+      <div class="col"><div class="metric-card bg-green"><div class="metric-icon"><i class="fa-solid fa-layer-group"></i></div><h3><%= typeof total_subjects !== 'undefined' ? total_subjects : 34 %></h3><small>Subjects</small></div></div>
+      <div class="col"><div class="metric-card bg-orange"><div class="metric-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+        <% if (user.role === 'student' && typeof total_total !== 'undefined' && total_total > 0) { %>
+          <h3><%= Math.round((total_present / total_total) * 100) %>%</h3>
+        <% } else { %>
+          <h3><%= typeof att_count !== 'undefined' ? att_count : 87 %></h3>
+        <% } %>
+        <small>Attendance</small></div></div>
+      <div class="col"><div class="metric-card bg-blue"><div class="metric-icon"><i class="fa-solid fa-user-graduate"></i></div><h3><%= typeof total_students !== 'undefined' ? total_students : 250 %></h3><small>Total Students</small></div></div>
+      <div class="col"><div class="metric-card bg-pink"><div class="metric-icon"><i class="fa-solid fa-user-tie"></i></div><h3><%= typeof total_staff !== 'undefined' ? total_staff : 18 %></h3><small>Total Staff</small></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-8">
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">Attendance Overview</h6>
+          <div style="position:relative; height:300px;"><canvas id="lineChart"></canvas></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">Performance Metrics</h6>
+          <div style="position:relative; height:300px;"><canvas id="doughnutChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+  <% } else if (page === 'courses' || page === 'subjects') { %>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">Add New <%= page === 'courses' ? 'Course' : 'Subject' %></h6>
+          <form method="POST" action="/app?page=<%= page %>">
+            <input type="hidden" name="action" value="<%= page === 'courses' ? 'add_course' : 'add_subject' %>">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold"><%= page === 'courses' ? 'Course' : 'Subject' %> Name</label>
+              <input type="text" name="name" class="form-control" required>
+            </div>
+            <% if (page === 'subjects') { %>
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Course</label>
+                <select name="course_id" class="form-select" required>
+                  <option value="">-- Select Course --</option>
+                  <% courses.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
+                </select>
+              </div>
+            <% } %>
+            <button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;"><i class="fa-solid fa-plus me-1"></i> Add</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">All <%= page === 'courses' ? 'Courses' : 'Subjects' %></h6>
+          <table class="table">
+            <thead><tr><th>#</th><th>Name</th><% if (page === 'subjects') { %><th>Course</th><% } %><th class="text-end">Action</th></tr></thead>
+            <tbody>
+              <% if (page === 'courses') { %>
+                <% courses.forEach((c, i) => { %>
+                  <tr>
+                    <td><%= i + 1 %></td><td class="fw-semibold"><%= c.name %></td>
+                    <td class="text-end"><a href="/app?page=courses&delete=1&table=courses&id=<%= c._id %>" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('Delete this course?')"><i class="fa-solid fa-trash"></i></a></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <% subjects.forEach((s, i) => { %>
+                  <tr>
+                    <td><%= i + 1 %></td><td class="fw-semibold"><%= s.name %></td>
+                    <td><%= s.course_id ? s.course_id.name : '-' %></td>
+                    <td class="text-end"><a href="/app?page=subjects&delete=1&table=subjects&id=<%= s._id %>" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('Delete this subject?')"><i class="fa-solid fa-trash"></i></a></td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  <% } else if (page === 'manage_staff' || page === 'manage_students') { %>
+    <% const isStudents = page === 'manage_students'; %>
+    <% const list = isStudents ? (typeof students !== 'undefined' ? students : []) : (typeof staffs !== 'undefined' ? staffs : []); %>
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">All <%= isStudents ? 'Students' : 'Staff' %></h6>
+        <button class="btn btn-primary rounded-3" style="background:#6366F1; border:none;" data-bs-toggle="modal" data-bs-target="#addUserModal">
+          <i class="fa-solid fa-plus me-1"></i> Add New
+        </button>
+      </div>
+      <table class="table">
+        <thead><tr><th>User</th><th>Email</th><th>Gender</th><% if (isStudents) { %><th>Course</th><% } %><th class="text-end">Action</th></tr></thead>
+        <tbody>
+          <% list.forEach(u => { %>
+            <tr>
+              <td>
+                <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(u.full_name || 'U') %>&background=E2E8F0&color=2B3674" style="width:34px; height:34px; border-radius:50%;" class="me-2">
+                <span class="fw-semibold"><%= u.full_name %></span>
+              </td>
+              <td><%= u.email %></td>
+              <td><%= u.gender || '-' %></td>
+              <% if (isStudents) { %><td><%= u.course_id ? u.course_id.name : '-' %></td><% } %>
+              <td class="text-end">
+                <a href="/app?page=<%= page %>&delete=1&table=<%= isStudents ? 'students' : 'staff' %>&id=<%= u._id %>" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('Delete this user?')"><i class="fa-solid fa-trash"></i></a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add user modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:20px; border:none;">
+          <div class="modal-header border-0"><h6 class="fw-bold mb-0">Add New <%= isStudents ? 'Student' : 'Staff' %></h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <form method="POST" action="/app?page=<%= page %>">
+              <input type="hidden" name="action" value="<%= isStudents ? 'add_student' : 'add_staff' %>">
+              <div class="mb-3"><label class="form-label small fw-semibold">Full Name</label><input type="text" name="full_name" class="form-control" required></div>
+              <div class="mb-3"><label class="form-label small fw-semibold">Email</label><input type="email" name="email" class="form-control" required></div>
+              <div class="mb-3"><label class="form-label small fw-semibold">Gender</label>
+                <select name="gender" class="form-select"><option>Male</option><option>Female</option><option>Other</option></select>
+              </div>
+              <% if (isStudents) { %>
+                <div class="mb-3"><label class="form-label small fw-semibold">Course</label>
+                  <select name="course_id" class="form-select" required>
+                    <option value="">-- Select Course --</option>
+                    <% courses.forEach(c => { %><option value="<%= c._id %>"><%= c.name %></option><% }) %>
+                  </select>
+                </div>
+              <% } %>
+              <div class="mb-3"><label class="form-label small fw-semibold">Address</label><textarea name="address" class="form-control" rows="2"></textarea></div>
+              <div class="text-muted small mb-3"><i class="fa-solid fa-circle-info me-1"></i>Default password: <b>123456</b></div>
+              <button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <% } else if (page === 'manage_attendance' || page === 'take_attendance') { %>
+    <div class="card p-4 mb-4">
+      <h6 class="fw-bold mb-3">Select Class</h6>
+      <form method="GET" action="/app" class="row g-2 align-items-end">
+        <input type="hidden" name="page" value="<%= page %>">
+        <div class="col-md-3"><label class="form-label small fw-semibold">Date</label><input type="date" name="fetch_date" class="form-control" value="<%= typeof fetch_date !== 'undefined' ? fetch_date : '' %>" required></div>
+        <div class="col-md-3"><label class="form-label small fw-semibold">Course</label>
+          <select name="fetch_course" class="form-select" required>
+            <option value="">-- Course --</option>
+            <% courses.forEach(c => { %><option value="<%= c._id %>" <%= (typeof fetch_course !== 'undefined' && fetch_course == c._id.toString()) ? 'selected' : '' %>><%= c.name %></option><% }) %>
+          </select>
+        </div>
+        <div class="col-md-3"><label class="form-label small fw-semibold">Subject</label>
+          <select name="fetch_subject" class="form-select" required>
+            <option value="">-- Subject --</option>
+            <% subjects.forEach(s => { %><option value="<%= s._id %>" <%= (typeof fetch_subject !== 'undefined' && fetch_subject == s._id.toString()) ? 'selected' : '' %>><%= s.name %></option><% }) %>
+          </select>
+        </div>
+        <div class="col-md-3"><button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;"><i class="fa-solid fa-magnifying-glass me-1"></i> Fetch</button></div>
+      </form>
+    </div>
+
+    <% if (fetched_students && fetched_students.length > 0) { %>
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Mark Attendance — <%= fetch_date %></h6>
+        <form method="POST" action="/app?page=<%= page %>">
+          <input type="hidden" name="action" value="save_attendance">
+          <input type="hidden" name="date" value="<%= fetch_date %>">
+          <input type="hidden" name="course_id" value="<%= fetch_course %>">
+          <input type="hidden" name="subject_id" value="<%= fetch_subject %>">
+          <table class="table">
+            <thead><tr><th>Student</th><th class="text-center">Present</th><th class="text-center">Absent</th></tr></thead>
+            <tbody>
+              <% fetched_students.forEach(st => { %>
+                <% const cur = existing_attendance[st._id.toString()]; %>
+                <tr>
+                  <td class="fw-semibold"><%= st.full_name %></td>
+                  <td class="text-center"><input type="radio" class="form-check-input" name="attendance[<%= st._id %>]" value="Present" <%= (!cur || cur === 'Present') ? 'checked' : '' %>></td>
+                  <td class="text-center"><input type="radio" class="form-check-input" name="attendance[<%= st._id %>]" value="Absent" <%= cur === 'Absent' ? 'checked' : '' %>></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <button class="btn btn-success rounded-3" style="background:#00B87C; border:none;"><i class="fa-solid fa-floppy-disk me-1"></i> Save Attendance</button>
+        </form>
+      </div>
+    <% } %>
+
+  <% } else if (page === 'manage_exams') { %>
+    <div class="card p-4 mb-4">
+      <h6 class="fw-bold mb-3">Select Exam Class</h6>
+      <form method="GET" action="/app" class="row g-2 align-items-end">
+        <input type="hidden" name="page" value="manage_exams">
+        <div class="col-md-4"><label class="form-label small fw-semibold">Course</label>
+          <select name="fetch_course" class="form-select" required>
+            <option value="">-- Course --</option>
+            <% courses.forEach(c => { %><option value="<%= c._id %>" <%= (typeof fetch_course !== 'undefined' && fetch_course == c._id.toString()) ? 'selected' : '' %>><%= c.name %></option><% }) %>
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label small fw-semibold">Subject</label>
+          <select name="fetch_subject" class="form-select" required>
+            <option value="">-- Subject --</option>
+            <% subjects.forEach(s => { %><option value="<%= s._id %>" <%= (typeof fetch_subject !== 'undefined' && fetch_subject == s._id.toString()) ? 'selected' : '' %>><%= s.name %></option><% }) %>
+          </select>
+        </div>
+        <div class="col-md-4"><button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;"><i class="fa-solid fa-magnifying-glass me-1"></i> Fetch</button></div>
+      </form>
+    </div>
+
+    <% if (exam_students && exam_students.length > 0) { %>
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Enter Scores</h6>
+        <form method="POST" action="/app?page=manage_exams">
+          <input type="hidden" name="action" value="save_scores">
+          <input type="hidden" name="subject_id" value="<%= fetch_subject %>">
+          <table class="table">
+            <thead><tr><th>Student</th><th style="width:200px;">Score (0-100)</th></tr></thead>
+            <tbody>
+              <% exam_students.forEach(st => { %>
+                <tr>
+                  <td class="fw-semibold"><%= st.full_name %></td>
+                  <td><input type="number" min="0" max="100" class="form-control" name="score[<%= st._id %>]" value="<%= existing_scores[st._id.toString()] !== undefined ? existing_scores[st._id.toString()] : '' %>"></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <button class="btn btn-success rounded-3" style="background:#00B87C; border:none;"><i class="fa-solid fa-floppy-disk me-1"></i> Save Scores</button>
+        </form>
+      </div>
+    <% } %>
+
+  <% } else if (page === 'apply_leave') { %>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">Apply for Leave</h6>
+          <form method="POST" action="/app?page=apply_leave">
+            <input type="hidden" name="action" value="apply_leave">
+            <div class="mb-3"><label class="form-label small fw-semibold">Date</label><input type="date" name="date" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label small fw-semibold">Reason</label><textarea name="message" class="form-control" rows="4" required></textarea></div>
+            <button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;"><i class="fa-solid fa-paper-plane me-1"></i> Submit Request</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">My Leave History</h6>
+          <table class="table">
+            <thead><tr><th>Date</th><th>Reason</th><th>Status</th></tr></thead>
+            <tbody>
+              <% (typeof my_leaves !== 'undefined' ? my_leaves : []).forEach(l => { %>
+                <tr>
+                  <td><%= l.date %></td>
+                  <td><%= l.message %></td>
+                  <td>
+                    <% if (l.status === 'Approved') { %><span class="status-pill pill-green">Approved</span>
+                    <% } else if (l.status === 'Declined') { %><span class="status-pill pill-red">Declined</span>
+                    <% } else { %><span class="status-pill pill-yellow">Pending</span><% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  <% } else if (page === 'notifications') { %>
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3">Leave Requests</h6>
+      <table class="table">
+        <thead><tr><th>User</th><th>Role</th><th>Date</th><th>Message</th><th>Status</th><th class="text-end">Action</th></tr></thead>
+        <tbody>
+          <% (typeof leaves !== 'undefined' ? leaves : []).forEach(l => { %>
+            <tr>
+              <td class="fw-semibold"><%= l.user_id ? l.user_id.full_name : 'Unknown' %></td>
+              <td><span class="badge rounded-pill text-bg-light text-capitalize"><%= l.role %></span></td>
+              <td><%= l.date %></td>
+              <td><%= l.message %></td>
+              <td>
+                <% if (l.status === 'Approved') { %><span class="status-pill pill-green">Approved</span>
+                <% } else if (l.status === 'Declined') { %><span class="status-pill pill-red">Declined</span>
+                <% } else { %><span class="status-pill pill-yellow">Pending</span><% } %>
+              </td>
+              <td class="text-end">
+                <% if (l.status === 'Pending') { %>
+                  <form method="POST" action="/app?page=notifications" class="d-inline">
+                    <input type="hidden" name="action" value="update_leave">
+                    <input type="hidden" name="leave_id" value="<%= l._id %>">
+                    <input type="hidden" name="status" value="Approved">
+                    <button class="btn btn-sm btn-success rounded-3" style="background:#00B87C; border:none;"><i class="fa-solid fa-check"></i></button>
+                  </form>
+                  <form method="POST" action="/app?page=notifications" class="d-inline">
+                    <input type="hidden" name="action" value="update_leave">
+                    <input type="hidden" name="leave_id" value="<%= l._id %>">
+                    <input type="hidden" name="status" value="Declined">
+                    <button class="btn btn-sm btn-danger rounded-3" style="background:#FF4C61; border:none;"><i class="fa-solid fa-xmark"></i></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+  <% } else if (page === 'notify') { %>
+    <div class="row"><div class="col-md-6">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Broadcast Notification</h6>
+        <form method="POST" action="/app?page=notify">
+          <input type="hidden" name="action" value="send_notification">
+          <div class="mb-3"><label class="form-label small fw-semibold">Audience</label>
+            <select name="type" class="form-select" required>
+              <option value="student">Students</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
+          <div class="mb-3"><label class="form-label small fw-semibold">Message</label><textarea name="message" class="form-control" rows="4" required></textarea></div>
+          <button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;"><i class="fa-solid fa-bullhorn me-1"></i> Send</button>
+        </form>
+      </div>
+    </div></div>
+
+  <% } else if (page === 'staff_notifs' || page === 'student_notifs') { %>
+    <% const items = typeof notifs !== 'undefined' ? notifs : []; %>
+    <% if (items.length === 0) { %>
+      <div class="alert alert-info rounded-3">No new notices.</div>
+    <% } else { %>
+      <% items.forEach(n => { %>
+        <div class="card p-3 mb-3">
+          <div class="d-flex align-items-start gap-3">
+            <div style="width:44px; height:44px; border-radius:12px; background:#EEF0FF; color:#6366F1; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-bell"></i></div>
+            <div>
+              <div class="fw-semibold"><%= n.message %></div>
+              <small class="text-muted"><%= new Date(n.created_at).toLocaleString() %></small>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+
+  <% } else if (page === 'view_attendance' || page === 'my_attendance') { %>
+    <% const isStaffView = page === 'view_attendance'; %>
+    <% const rows = isStaffView ? (typeof logs !== 'undefined' ? logs : []) : (typeof my_att !== 'undefined' ? my_att : []); %>
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3"><%= isStaffView ? 'Attendance Logs (latest 50)' : 'My Attendance' %></h6>
+      <table class="table">
+        <thead><tr><th>Date</th><% if (isStaffView) { %><th>Student</th><% } %><th>Subject</th><th>Status</th></tr></thead>
+        <tbody>
+          <% rows.forEach(a => { %>
+            <tr>
+              <td><%= a.date %></td>
+              <% if (isStaffView) { %><td class="fw-semibold"><%= a.student_id ? a.student_id.full_name : 'Unknown' %></td><% } %>
+              <td><%= a.subject_id ? a.subject_id.name : '-' %></td>
+              <td>
+                <% if (a.status === 'Present') { %><span class="status-pill pill-green">Present</span>
+                <% } else { %><span class="status-pill pill-red">Absent</span><% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+  <% } else if (page === 'exam_results') { %>
+    <% const myScores = typeof scores !== 'undefined' ? scores : []; %>
+    <% if (myScores.length === 0) { %>
+      <div class="alert alert-info rounded-3">No exam scores available yet.</div>
+    <% } else { %>
+      <div class="row g-3">
+        <% myScores.forEach(s => { %>
+          <div class="col-md-3">
+            <div class="card result-card p-4 text-center">
+              <div class="text-muted small fw-semibold mb-2"><%= s.subject_id ? s.subject_id.name : 'Subject' %></div>
+              <div style="font-size:2.2rem; font-weight:700; color:#2B3674;"><%= s.score %></div>
+              <small class="text-muted">out of 100</small>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+  <% } else if (page === 'feedback') { %>
+    <div class="row"><div class="col-md-6">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Send Feedback</h6>
+        <form method="POST" action="/app?page=feedback">
+          <input type="hidden" name="action" value="send_feedback">
+          <div class="mb-3"><textarea name="message" class="form-control" rows="5" placeholder="Write your feedback here..." required></textarea></div>
+          <button class="btn btn-primary rounded-3 w-100" style="background:#6366F1; border:none;"><i class="fa-solid fa-paper-plane me-1"></i> Submit</button>
+        </form>
+      </div>
+    </div></div>
+
+  <% } else { %>
+    <div class="alert alert-warning rounded-3">Page not found: <%= page %></div>
+  <% } %>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<% if (page === 'dashboard') { %>
+<script>
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1) + ' May');
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        { label: 'Present', data: days.map(() => 60 + Math.floor(Math.random() * 40)), borderColor: '#00B87C', backgroundColor: 'rgba(0,184,124,0.08)', tension: 0.4, fill: true },
+        { label: 'Absent', data: days.map(() => Math.floor(Math.random() * 25)), borderColor: '#FF4C61', backgroundColor: 'rgba(255,76,97,0.08)', tension: 0.4, fill: true }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  });
+  new Chart(document.getElementById('doughnutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Excellent', 'Good', 'Needs Work'],
+      datasets: [{ data: [55, 30, 15], backgroundColor: ['#00B87C', '#0075FF', '#FF4C61'], borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+  });
+</script>
+<% } %>
+</body>
+</html>
